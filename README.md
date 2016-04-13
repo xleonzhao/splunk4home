@@ -1,2 +1,2 @@
 # splunk4home
-Using Splunk to view and manage home network.
+Using [Splunk](https://www.splunk.com) to view and manage home network.
