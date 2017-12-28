@@ -5,4 +5,5 @@ Main features (planned):
 * Connected devices management
 * Bandwidth usage
 * Security monitoring
+* Destination intelligence
 * Parental control
