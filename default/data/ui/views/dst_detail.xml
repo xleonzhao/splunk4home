@@ -1,0 +1,44 @@
+<form>
+  <label>Destination Intelligence</label>
+  <fieldset autorun="true" submitButton="false">
+    <input type="text" token="dst_tok">
+      <label>destination IP address/domain name</label>
+      <default>127.0.0.1</default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <chart>
+        <search>
+          <query>
+            sourcetype=csv dst=$dst_tok$ | timechart span=1d sum(bw) as dstBW by dev
+          </query>
+          <earliest>-90d</earliest>
+          <latest>-0d</latest>
+         </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>
+            sourcetype=csv dst=$dst_tok$ | bucket _time span=1d 
+            | stats values(dev) as Devices, avg(bw) as avg_bw_use by _time 
+            | eval avg_bw_use=round(avg_bw_use/(1024*1024),0)
+            | eval avg_bw_use=tostring(avg_bw_use,"commas")
+            | rename avg_bw_use as "Avg BW use per day (MB)"
+            | sort - _time
+          </query>
+          <earliest>-90d</earliest>
+          <latest>-0d</latest>
+         </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+      </table>
+    </panel>
+  </row>
+</form>

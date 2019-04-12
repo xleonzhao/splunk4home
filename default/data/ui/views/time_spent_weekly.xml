@@ -1,0 +1,27 @@
+<dashboard script="autodiscover.js">
+    <label>Time Spent Weekly View</label>
+    <search id="punchcard_search">
+        <query>
+          sourcetype=csv bw>1500000 NOT dev=200* | bucket _time span=5m | stats dc(dev) as activebool by _time, dev 
+          | eval wday=strftime(_time, "%a") | stats count(activebool) as count by wday, dev 
+        </query>
+        <earliest>-7d</earliest>
+    </search>
+    
+    <row>
+        <panel>
+            <title>Devices Weekly Time Spending</title>
+            <html>
+                <div id="punchcard"
+                     class="splunk-view"
+                     data-require="app/search/components/punchcard/punchcard"
+                     data-options='{
+                        "managerid": "punchcard_search",
+                        "range_values": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                        "height": 800
+                    }'>
+                </div>
+            </html>
+        </panel>
+    </row>
+</dashboard>

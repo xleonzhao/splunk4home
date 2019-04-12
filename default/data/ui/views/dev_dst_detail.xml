@@ -1,0 +1,58 @@
+<form refresh="300" stylesheet="dst_detail.css" script="dst_detail.js">
+  <label>Visited Destinations</label>
+  <fieldset autorun="true" submitButton="false">
+    <input type="dropdown" token="dev_tok">
+      <label>Select a device</label>
+      <default>127.0.0.1</default>
+      <populatingSearch fieldForValue="dev" fieldForLable="dev">
+        <![CDATA[sourcetype=csv NOT dev=200* earliest=-1d | stats count by dev]]>
+      </populatingSearch>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <chart>
+        <search>
+          <query>
+            sourcetype=csv dev=$dev_tok$ | timechart span=5m eval(round(sum(bw)/(1024*1024),0)) as totalBW by dst
+          </query>
+          <earliest>-1d</earliest>
+          <latest>-0d</latest>
+         </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+          <drilldown target="Dst Detail">
+           <link>
+           <![CDATA[
+      /app/datasci4home/dst_detail?form.dst_tok=$click.name2$
+           ]]>
+           </link>
+        </drilldown>      
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table id="tblDst">
+        <search>
+          <query>
+            sourcetype=csv dev=$dev_tok$ | stats sum(bw) as dstbw by dst 
+            | eval dstbw = round(dstbw/(1024*1024),0) 
+            | sort -dstbw | head 10
+            | eval dstbw = tostring(dstbw, "commas")
+            | rename dstbw as "Total MB transferred in the past 24 hours"
+          </query>
+          <earliest>-1d</earliest>
+          <latest>-0d</latest>
+         </search>
+         <drilldown target="Dst Detail">
+           <link>
+           <![CDATA[
+      /app/datasci4home/dst_detail?form.dst_tok=$click.value2$
+           ]]>
+           </link>
+        </drilldown>      
+      </table>
+    </panel>
+  </row>
+</form>

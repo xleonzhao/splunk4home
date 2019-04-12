@@ -1,0 +1,89 @@
+<dashboard refresh="300">
+  <label>Home NetOps</label>
+  <row>
+    <panel>
+      <chart>
+        <title>5-min BW usage by devices in the past 24 hours (MB)</title>
+        <search>
+          <query>sourcetype=csv | timechart span=5m eval(round(sum(bw)/(1024*1024),0)) as totalBW by dev 
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">log</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">zero</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <drilldown target="Detail">
+           <link>
+           <![CDATA[
+      /app/datasci4home/dev_dst_detail?form.dev_tok=$click.name2$
+           ]]>
+           </link>
+        </drilldown>      
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top devices time spent (hours)</title>
+        <search>
+          <query>
+            sourcetype=csv bw>1500000 | bucket _time span=5m  | stats dc(dev) as activebool, sum(bw) as 5mbw by _time, dev
+            | bucket _time span=1h | stats sum(activebool) as activetime, sum(5mbw) as hourlybw by _time, dev
+            | eval activetime = round(activetime * 5, 1)
+            | chart sparkline(sum(activetime),1h) as trend, sum(activetime) as duration, sum(hourlybw) as totalbw, avg(hourlybw) as avgbw by dev | sort -duration | head 10
+            | where duration > 30
+            | eval duration=round(duration/60, 1)
+            | eval totalbw=round(totalbw/(1024*1024),1), avgbw=round(avgbw/(1024*1024),1)
+            | rename dev as "Device", duration as "Total hours spent in the past 24 hours", trend as "Active Time (min)"
+            | rename totalbw as "Total BW (MB)", avgbw as "Avg. Hourly BW (MB)"
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+         </search>
+            <option name="wrap">true</option>
+            <option name="rowNumbers">true</option>
+            <option name="dataOverlayMode">none</option>
+            <option name="drilldown">cell</option>
+            <!-- Set sparkline options here; make sure that field matches field name of the search results -->
+            <format type="sparkline" field="Active Time (min)">
+                <option name="type">bar</option>
+                <option name="height">20px</option>
+                <!-- Use colorMap to map specific values to selected colors -->
+                <option name="colorMap">
+                    <option name="40:">red</option>
+                    <option name="20:39">blue</option>
+                    <option name=":19">green</option>
+                </option>
+                <option name="barWidth">5px</option>
+            </format>
+         <drilldown target="Dev Detail">
+           <link>
+           <![CDATA[
+      /app/datasci4home/dev_dst_detail?form.dev_tok=$click.value2$
+           ]]>
+           </link>
+        </drilldown>      
+      </table>
+    </panel>
+  </row>
+</dashboard>
