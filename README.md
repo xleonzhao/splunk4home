@@ -7,3 +7,5 @@ Main features (planned):
 * Security monitoring
 * Destination intelligence
 * Parental control
+
+![](home-netops.png)
